@@ -1992,7 +1992,7 @@ export default function OrbitThreadApp() {
                 ))}
               </div>
               <button className="btn-primary full" disabled={selectedTopics.length < 3} onClick={saveOnboardTopics}>
-                Build My Orbit →
+                Build My Orbit Thread →
               </button>
               <div className="onb-count">{selectedTopics.length} of 3 required selected · max 5</div>
             </div>
