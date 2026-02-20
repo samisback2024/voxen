@@ -1,4 +1,4 @@
-# Voxen — Think Louder, Together.
+# Orbit Thread — Think Louder, Together.
 
 A full-stack real-time discussion platform built with React, Supabase, and Vercel.  
 Users create "Circles" (rooms), have real-time conversations, connect with others, and unlock premium features with a Verified badge.
@@ -29,7 +29,7 @@ Users create "Circles" (rooms), have real-time conversations, connect with other
 
 0
 **Production:** Deployed on Vercel (auto-deploys from `main` branch)  
-**GitHub:** [github.com/samisback2024/Voxen](https://github.com/samisback2024/Voxen)  
+**GitHub:** [github.com/samisback2024/Orbit-Thread](https://github.com/samisback2024/Orbit-Thread)  
 **Supabase Project:** `gpkhehcnsggwjejkwuyv`
 
 ---
@@ -66,7 +66,7 @@ Users create "Circles" (rooms), have real-time conversations, connect with other
 
 **Key design decisions:**
 
-- **Single-file component:** The entire app lives in `VoxenApp.jsx` (~2950 lines). This is intentional for rapid iteration — keeps everything visible and self-contained. Future phases should split into modules.
+- **Single-file component:** The entire app lives in `OrbitThreadApp.jsx` (~2943 lines). This is intentional for rapid iteration — keeps everything visible and self-contained. Future phases should split into modules.
 - **CSS-in-JS via template literal:** All styles are in a `const CSS` string injected via `<style>{CSS}</style>`. No build tool config needed. Phase 2 could migrate to CSS Modules or Tailwind.
 - **No external UI library:** Every component (modals, cards, buttons, avatars) is hand-built. Keeps bundle small (~130KB gzipped).
 - **Supabase client-side only:** No backend server. Supabase RLS (Row Level Security) policies protect data. The anon key is safe to expose — RLS enforces access.
@@ -76,7 +76,7 @@ Users create "Circles" (rooms), have real-time conversations, connect with other
 ## Project Structure
 
 ```
-voxen/
+orbit-thread/
 ├── index.html              # Entry HTML (Vite injects JS here)
 ├── package.json            # Dependencies & scripts
 ├── vite.config.js          # Vite config (React plugin)
@@ -88,11 +88,11 @@ voxen/
 │   └── vite.svg
 └── src/
     ├── main.jsx            # React DOM root mount
-    ├── App.jsx             # Re-exports VoxenApp
-    ├── App.css             # Unused (styles are in VoxenApp.jsx)
+    ├── App.jsx             # Re-exports OrbitThreadApp
+    ├── App.css             # Unused (styles are in OrbitThreadApp.jsx)
     ├── index.css           # Global body/html reset styles
     ├── supabase.js         # Supabase client initialization
-    ├── VoxenApp.jsx        # ★ MAIN APP — all UI, logic, styles
+    ├── OrbitThreadApp.jsx  # ★ MAIN APP — all UI, logic, styles
     └── assets/
         └── react.svg
 ```
@@ -101,7 +101,7 @@ voxen/
 
 | File                  | Lines | What It Does                                                                                                                                                                                           |
 | --------------------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `VoxenApp.jsx`        | ~2950 | Everything: CSS, constants, mock data, state, Supabase queries, all views (auth, onboard, home, room, profile, people, settings, create modal, invite modal, call modal, discover, DMs, premium modal) |
+| `OrbitThreadApp.jsx`  | ~2943 | Everything: CSS, constants, mock data, state, Supabase queries, all views (auth, onboard, home, room, profile, people, settings, create modal, invite modal, call modal, discover, DMs, premium modal) |
 | `supabase.js`         | ~10   | Creates and exports the Supabase client using env vars                                                                                                                                                 |
 | `supabase-schema.sql` | ~178  | Full database schema — tables, indexes, RLS policies, trigger for auto-profile creation, realtime config                                                                                               |
 | `vercel.json`         | ~5    | SPA catch-all rewrite so routes don't 404 on Vercel                                                                                                                                                    |
@@ -354,8 +354,8 @@ The function extracts `name`, `handle`, and `initials` from the signup metadata 
 
 ```bash
 # 1. Clone
-git clone https://github.com/samisback2024/Voxen.git
-cd Voxen
+git clone https://github.com/samisback2024/Orbit-Thread.git
+cd Orbit-Thread
 
 # 2. Install dependencies
 npm install
@@ -431,24 +431,24 @@ npm run dev
 | **Push notifications** | Browser push API + service worker for offline alerts. | Hard       |
 | **Voice/video calls**  | WebRTC peer-to-peer calling. Needs signaling server.  | Hard       |
 | **Admin dashboard**    | Manage users, rooms, reports. Separate admin role.    | Medium     |
-| **Custom domains**     | Point `voxen.app` or similar to Vercel.               | Easy       |
+| **Custom domains**     | Point `orbitthread.app` or similar to Vercel.         | Easy       |
 
 ### Priority 4 — Code Quality
 
-| Task                      | Description                                                                      |
-| ------------------------- | -------------------------------------------------------------------------------- |
-| **Split into components** | Break `VoxenApp.jsx` into `AuthPage`, `Sidebar`, `RoomView`, `ProfilePage`, etc. |
-| **State management**      | Move from `useState` spaghetti to React Context or Zustand.                      |
-| **TypeScript migration**  | Add type safety to props, Supabase queries, state.                               |
-| **CSS extraction**        | Move from template literal CSS to CSS Modules or Tailwind.                       |
-| **Testing**               | Add Vitest unit tests + Playwright E2E tests.                                    |
-| **CI/CD**                 | GitHub Actions for lint + test + deploy pipeline.                                |
+| Task                      | Description                                                                            |
+| ------------------------- | -------------------------------------------------------------------------------------- |
+| **Split into components** | Break `OrbitThreadApp.jsx` into `AuthPage`, `Sidebar`, `RoomView`, `ProfilePage`, etc. |
+| **State management**      | Move from `useState` spaghetti to React Context or Zustand.                            |
+| **TypeScript migration**  | Add type safety to props, Supabase queries, state.                                     |
+| **CSS extraction**        | Move from template literal CSS to CSS Modules or Tailwind.                             |
+| **Testing**               | Add Vitest unit tests + Playwright E2E tests.                                          |
+| **CI/CD**                 | GitHub Actions for lint + test + deploy pipeline.                                      |
 
 ---
 
 ## Known Limitations
 
-1. **Single-file architecture** — `VoxenApp.jsx` is ~2950 lines. Works for rapid iteration but should be split for maintainability.
+1. **Single-file architecture** — `OrbitThreadApp.jsx` is ~2943 lines. Works for rapid iteration but should be split for maintainability.
 2. **Mock users** — The "People" page shows hardcoded `DEMO_USERS`, not real users from the database.
 3. **Connection system** — Uses local React state (`connStates`), not persisted to Supabase `connections` table yet.
 4. **No email verification** — Turned off for easier dev. Should be enabled for production.

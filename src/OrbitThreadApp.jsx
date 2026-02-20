@@ -1,6 +1,6 @@
 /**
  * ============================================================
- * VOXEN  ·  Phase 1 v3
+ * ORBIT THREAD  ·  Phase 1 v3
  * ============================================================
  *
  * DESIGN PHILOSOPHY THIS VERSION:
@@ -1297,7 +1297,7 @@ const CSS = `
 // ════════════════════════════════════════════════════════════
 // MAIN APP
 // ════════════════════════════════════════════════════════════
-export default function VoxenApp() {
+export default function OrbitThreadApp() {
   const [view,          setView]          = useState("auth");
   const [user,          setUser]          = useState(null);
   const [authLoading,   setAuthLoading]   = useState(true);
@@ -1392,7 +1392,7 @@ export default function VoxenApp() {
     if (isVerified) return;
     const planLabel = subPlan === "yearly" ? "$30.00/year (save 37%)" : "$4.00/month";
     const confirmed = window.confirm(
-      `Subscribe to Voxen Verified — ${planLabel}\n\n` +
+      `Subscribe to Orbit Thread Verified — ${planLabel}\n\n` +
       "• Verified checkmark on your profile\n" +
       "• Unlimited Circles (rooms) per day\n" +
       "• Priority support & early features\n\n" +
@@ -1680,8 +1680,8 @@ export default function VoxenApp() {
     if (user) {
       await supabase.from("profiles").update({ is_verified: true, sub_plan: "monthly" }).eq("id", user.id);
     }
-    showToast("⭐ You're now Voxen Premium!");
-    addNotif("⭐ <strong>Welcome to Voxen Premium!</strong> Verified badge, unlimited rooms, and more are now yours.");
+    showToast("⭐ You're now Orbit Thread Premium!");
+    addNotif("⭐ <strong>Welcome to Orbit Thread Premium!</strong> Verified badge, unlimited rooms, and more are now yours.");
   }, [user, showToast, addNotif]);
 
   // ── SEND CONNECTION REQUEST ──────────────────────────────
@@ -1845,14 +1845,14 @@ export default function VoxenApp() {
     if (!room?.schedule) return;
     const dt = new Date(`${room.schedule.date}T${room.schedule.time}`);
     const end = new Date(dt.getTime() + 7200000);
-    const ics = `BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Voxen//EN\nBEGIN:VEVENT\nSUMMARY:${room.name} · Voxen\nDTSTART:${fmt(dt)}\nDTEND:${fmt(end)}\nDESCRIPTION:${room.desc}\nEND:VEVENT\nEND:VCALENDAR`;
-    Object.assign(document.createElement("a"), { href: URL.createObjectURL(new Blob([ics],{type:"text/calendar"})), download:`${room.name}-voxen.ics` }).click();
+    const ics = `BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//OrbitThread//EN\nBEGIN:VEVENT\nSUMMARY:${room.name} · Orbit Thread\nDTSTART:${fmt(dt)}\nDTEND:${fmt(end)}\nDESCRIPTION:${room.desc}\nEND:VEVENT\nEND:VCALENDAR`;
+    Object.assign(document.createElement("a"), { href: URL.createObjectURL(new Blob([ics],{type:"text/calendar"})), download:`${room.name}-orbit-thread.ics` }).click();
   };
   const openGCal = (room) => {
     if (!room?.schedule) return;
     const dt = new Date(`${room.schedule.date}T${room.schedule.time}`);
     const end = new Date(dt.getTime() + 7200000);
-    window.open(`https://calendar.google.com/calendar/r/eventedit?text=${encodeURIComponent(room.name+" · Voxen")}&dates=${fmt(dt)}/${fmt(end)}&details=${encodeURIComponent(room.desc)}`, "_blank");
+    window.open(`https://calendar.google.com/calendar/r/eventedit?text=${encodeURIComponent(room.name+" · Orbit Thread")}&dates=${fmt(dt)}/${fmt(end)}&details=${encodeURIComponent(room.desc)}`, "_blank");
   };
 
   const enterRoom = (room) => { setActiveRoom(room); setRoomTab("discussion"); setView("room"); };
@@ -1930,7 +1930,7 @@ export default function VoxenApp() {
             <div className="auth-card">
               <div className="auth-top">
                 <div className="auth-mark">◈</div>
-                <div className="auth-name">Voxen</div>
+                <div className="auth-name">Orbit Thread</div>
                 <div className="auth-tagline">Think louder, together.</div>
               </div>
               <div className="divider">{authMode === "signup" ? "Sign up" : "Log in"} with email</div>
@@ -1968,7 +1968,7 @@ export default function VoxenApp() {
           <div className="auth-page">
             <div className="auth-card" style={{textAlign:"center",padding:60}}>
               <div className="auth-mark" style={{animation:"pulse 1.5s ease infinite"}}>◈</div>
-              <div style={{marginTop:16,color:"var(--t2)",fontSize:13}}>Loading Voxen...</div>
+              <div style={{marginTop:16,color:"var(--t2)",fontSize:13}}>Loading Orbit Thread...</div>
             </div>
           </div>
         )}
@@ -1979,7 +1979,7 @@ export default function VoxenApp() {
             <div className="onb-box">
               <div className="onb-step">Step 1 of 2</div>
               <div className="onb-title">What moves your mind?</div>
-              <div className="onb-sub">Choose 3 to 5 topics that matter to you. Voxen will build your quiet room around them. Search for anything — every field is here.</div>
+              <div className="onb-sub">Choose 3 to 5 topics that matter to you. Orbit Thread will build your quiet room around them. Search for anything — every field is here.</div>
               <div className="onb-sw">
                 <MagIco className="onb-sico" />
                 <input className="onb-si" placeholder="Search any topic in the world..." value={topicSearch} onChange={e => setTopicSearch(e.target.value)} />
@@ -1992,7 +1992,7 @@ export default function VoxenApp() {
                 ))}
               </div>
               <button className="btn-primary full" disabled={selectedTopics.length < 3} onClick={saveOnboardTopics}>
-                Build My Voxen →
+                Build My Orbit →
               </button>
               <div className="onb-count">{selectedTopics.length} of 3 required selected · max 5</div>
             </div>
@@ -2008,7 +2008,7 @@ export default function VoxenApp() {
               <div className="sb-brand">
                 <div className="sb-logomark">◈</div>
                 <div className="sb-wordmark">
-                  <div className="sb-wordmark-name">Voxen</div>
+                  <div className="sb-wordmark-name">Orbit Thread</div>
                   <div className="sb-wordmark-tag">Think louder, together.</div>
                 </div>
               </div>
@@ -2074,7 +2074,7 @@ export default function VoxenApp() {
               <div className="topbar">
                 <div className="tb-crumb">
                   <span className="tb-live"></span>
-                  {view==="home" ? "Voxen" : view==="room" ? activeRoom?.name : view==="profile" ? "Profile" : view==="messages" ? "Messages" : "People"}
+                  {view==="home" ? "Orbit Thread" : view==="room" ? activeRoom?.name : view==="profile" ? "Profile" : view==="messages" ? "Messages" : "People"}
                 </div>
 
                 <div className="srch-wrap" ref={searchRef}>
@@ -2377,7 +2377,7 @@ export default function VoxenApp() {
                             <div className="empty">
                               <div className="empty-ico">💬</div>
                               <div className="empty-title">Start the conversation</div>
-                              <div className="empty-sub">{activeRoom.type==="public"?"Public room — anyone on Voxen can read and post here.":"Private room — focused, invite-only discussion."}</div>
+                              <div className="empty-sub">{activeRoom.type==="public"?"Public room — anyone on Orbit Thread can read and post here.":"Private room — focused, invite-only discussion."}</div>
                             </div>
                           )}
                           {msgs.map(m => (
@@ -2431,7 +2431,7 @@ export default function VoxenApp() {
                       <div className="people-scroll">
                         {activeRoom.type==="public" && (
                           <div style={{padding:"9px 12px",background:"rgba(92,184,130,0.06)",border:"1px solid rgba(92,184,130,0.12)",borderRadius:"var(--r8)",fontSize:12,color:"var(--t1)",marginBottom:4}}>
-                            🌐 Public room — anyone on Voxen can participate.
+                            🌐 Public room — anyone on Orbit Thread can participate.
                           </div>
                         )}
                         <div className="person-card">
@@ -2489,7 +2489,7 @@ export default function VoxenApp() {
                 <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden"}}>
                   <div className="people-scroll">
                     <div className="people-intro">
-                      <h3>People on Voxen</h3>
+                      <h3>People on Orbit Thread</h3>
                       <p>Send a connection request. Once accepted, you can chat, call, and message each other privately.</p>
                     </div>
 
@@ -2662,7 +2662,7 @@ export default function VoxenApp() {
                             {profileSettings.profilePublic ? "🌐 Public" : "🔒 Private"}
                           </span>
                         </div>
-                        <div className="profile-bio">Member of Voxen — focused intellectual discourse. Think louder, together.</div>
+                        <div className="profile-bio">Member of Orbit Thread — focused intellectual discourse. Think louder, together.</div>
                       </div>
                     </div>
                     <div className="prof-sec">Interests</div>
@@ -2696,7 +2696,7 @@ export default function VoxenApp() {
                 <div className="fl">Visibility</div>
                 <div className="vis-grid">
                   <div className={`vis-opt${createForm.visibility==="public"?" sel":""}`} onClick={()=>setCreateForm({...createForm,visibility:"public"})}>
-                    <div className="vis-ico">🌐</div><div className="vis-name">Public</div><div className="vis-sub">Anyone on Voxen can read & join.</div>
+                    <div className="vis-ico">🌐</div><div className="vis-name">Public</div><div className="vis-sub">Anyone on Orbit Thread can read & join.</div>
                   </div>
                   <div className={`vis-opt${createForm.visibility==="private"?" sel":""}`} onClick={()=>setCreateForm({...createForm,visibility:"private"})}>
                     <div className="vis-ico">🔒</div><div className="vis-name">Private</div><div className="vis-sub">Invite-only. You approve members.</div>
@@ -2736,8 +2736,8 @@ export default function VoxenApp() {
                   </div>
                   {createForm.date && createForm.time && (
                     <div className="cal-row">
-                      <button className="btn-ghost" style={{fontSize:12}} onClick={()=>openGCal({name:createForm.name||"Voxen Session",desc:createForm.purpose,schedule:{date:createForm.date,time:createForm.time}})}>📅 Google Calendar</button>
-                      <button className="btn-ghost" style={{fontSize:12}} onClick={()=>downloadICS({name:createForm.name||"Voxen Session",desc:createForm.purpose,schedule:{date:createForm.date,time:createForm.time}})}>⬇ Download .ics</button>
+                      <button className="btn-ghost" style={{fontSize:12}} onClick={()=>openGCal({name:createForm.name||"Orbit Thread Session",desc:createForm.purpose,schedule:{date:createForm.date,time:createForm.time}})}>📅 Google Calendar</button>
+                      <button className="btn-ghost" style={{fontSize:12}} onClick={()=>downloadICS({name:createForm.name||"Orbit Thread Session",desc:createForm.purpose,schedule:{date:createForm.date,time:createForm.time}})}>⬇ Download .ics</button>
                     </div>
                   )}
                 </div>
@@ -2755,7 +2755,7 @@ export default function VoxenApp() {
           <div className="overlay" onClick={() => setShowInvite(false)}>
             <div className="modal" onClick={e=>e.stopPropagation()}>
               <div className="modal-head"><h3>Invite to "{activeRoom?.name}"</h3><button className="modal-x" onClick={() => setShowInvite(false)}>✕</button></div>
-              <div className="field"><div className="fl">Email or Voxen Handle</div><input className="fi" placeholder="@handle or email@example.com" /></div>
+              <div className="field"><div className="fl">Email or Orbit Thread Handle</div><input className="fi" placeholder="@handle or email@example.com" /></div>
               <div style={{fontSize:11,color:"var(--t2)",marginBottom:10,fontStyle:"italic"}}>Or pick from your connections:</div>
               <div className="invite-list">
                 {DEMO_USERS.map(u => (
@@ -2827,8 +2827,8 @@ export default function VoxenApp() {
                   <div className="vb-top">
                     <div className="vb-icon">◆</div>
                     <div>
-                      <div className="vb-title">Voxen Verified</div>
-                      <div className="vb-price">{isVerified ? "Your plan is active" : "Unlock the full Voxen experience"}</div>
+                      <div className="vb-title">Orbit Thread Verified</div>
+                      <div className="vb-price">{isVerified ? "Your plan is active" : "Unlock the full Orbit Thread experience"}</div>
                     </div>
                   </div>
                   <div className="vb-perks">
@@ -2888,7 +2888,7 @@ export default function VoxenApp() {
           <div className="overlay" onClick={() => setShowPremium(false)}>
             <div className="modal premium-modal" onClick={e => e.stopPropagation()}>
               <div className="pm-star">⭐</div>
-              <div className="pm-title">Voxen Premium</div>
+              <div className="pm-title">Orbit Thread Premium</div>
               <div className="pm-price">$4.99 <span>/ month</span></div>
               <div className="pm-features">
                 <div className="pm-feat"><span className="pm-feat-ico">⭐</span> Verified badge on your profile and rooms</div>
@@ -2924,7 +2924,7 @@ export default function VoxenApp() {
         )}
 
         {profWarn && (
-          <div className="warn-toast">🚫 Message blocked — Voxen requires clean, respectful language.</div>
+          <div className="warn-toast">🚫 Message blocked — Orbit Thread requires clean, respectful language.</div>
         )}
 
         {successToast && (

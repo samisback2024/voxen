@@ -1,5 +1,5 @@
 -- ════════════════════════════════════════════════════════════
--- VOXEN · Database Schema
+-- ORBIT THREAD · Database Schema
 -- Run this in Supabase SQL Editor (supabase.com → your project → SQL Editor)
 -- ════════════════════════════════════════════════════════════
 

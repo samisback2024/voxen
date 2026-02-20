@@ -29,7 +29,7 @@ Users create "Circles" (rooms), have real-time conversations, connect with other
 ## Live URL
 
 **Production:** [orbit-thread.vercel.app](https://orbit-thread.vercel.app)  
-**GitHub:** [github.com/samisback2024/voxen](https://github.com/samisback2024/voxen)  
+**GitHub:** [github.com/samisback2024/Orbit-Thread](https://github.com/samisback2024/Orbit-Thread)  
 **Supabase Project:** `gpkhehcnsggwjejkwuyv`
 
 ---
@@ -361,8 +361,8 @@ The function extracts `name`, `handle`, and `initials` from the signup metadata 
 
 ```bash
 # 1. Clone
-git clone https://github.com/samisback2024/voxen.git
-cd voxen/Orbit\ Thread
+git clone https://github.com/samisback2024/Orbit-Thread.git
+cd Orbit-Thread/Orbit\ Thread
 
 # 2. Install dependencies
 npm install
@@ -419,7 +419,7 @@ npx supabase migration list
 
 ### Git
 
-- **Repository:** [github.com/samisback2024/voxen](https://github.com/samisback2024/voxen)
+- **Repository:** [github.com/samisback2024/Orbit-Thread](https://github.com/samisback2024/Orbit-Thread)
 - **Branch:** `main`
 - Push triggers Vercel auto-deploy (once GitHub integration is connected)
 

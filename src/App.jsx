@@ -1,1 +1,1 @@
-export { default } from './VoxenApp.jsx'
+export { default } from './OrbitThreadApp.jsx'
