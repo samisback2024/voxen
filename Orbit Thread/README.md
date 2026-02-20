@@ -22,30 +22,31 @@ Users create "Circles" (rooms), have real-time conversations, connect with other
 13. [Deployment](#deployment)
 14. [Phase 3 Roadmap](#phase-3-roadmap)
 15. [Known Limitations](#known-limitations)
+16. [Credits](#credits)
 
 ---
 
 ## Live URL
 
-0
-**Production:** Deployed on Vercel (auto-deploys from `main` branch)  
-**GitHub:** [github.com/samisback2024/Voxen](https://github.com/samisback2024/Voxen)  
+**Production:** [orbit-thread.vercel.app](https://orbit-thread.vercel.app)  
+**GitHub:** [github.com/samisback2024/voxen](https://github.com/samisback2024/voxen)  
 **Supabase Project:** `gpkhehcnsggwjejkwuyv`
 
 ---
 
 ## Tech Stack
 
-| Layer        | Technology                     | Purpose                           |
-| ------------ | ------------------------------ | --------------------------------- |
-| Frontend     | React 19.2 + Vite 7.3          | SPA with HMR dev server           |
-| Styling      | CSS-in-JS (template literal)   | Single `const CSS` block, no deps |
-| Fonts        | Plus Jakarta Sans + Lora       | Warm, human typography            |
-| Auth         | Supabase Auth (email/password) | Signup, login, session management |
-| Database     | Supabase (PostgreSQL)          | Profiles, rooms, messages, etc.   |
-| Realtime     | Supabase Realtime (WebSocket)  | Live message streaming in rooms   |
-| Hosting      | Vercel                         | Static build + CDN + auto-deploy  |
-| Version Ctrl | Git + GitHub                   | Source control + CI/CD trigger    |
+| Layer         | Technology                     | Purpose                           |
+| ------------- | ------------------------------ | --------------------------------- |
+| Frontend      | React 19.2 + Vite 7.3          | SPA with HMR dev server           |
+| Styling       | CSS-in-JS (template literal)   | Single `const CSS` block, no deps |
+| Fonts         | Plus Jakarta Sans + Lora       | Warm, human typography            |
+| Auth          | Supabase Auth (email/password) | Signup, login, session management |
+| Database      | Supabase (PostgreSQL)          | Profiles, rooms, messages, etc.   |
+| Realtime      | Supabase Realtime (WebSocket)  | Live message streaming in rooms   |
+| Hosting       | Vercel                         | Static build + CDN + auto-deploy  |
+| Version Ctrl  | Git + GitHub                   | Source control + CI/CD trigger    |
+| DB Migrations | Supabase CLI                   | Schema versioning & remote push   |
 
 ---
 
@@ -76,23 +77,29 @@ Users create "Circles" (rooms), have real-time conversations, connect with other
 ## Project Structure
 
 ```
-voxen/
+orbit-thread/
 ├── index.html              # Entry HTML (Vite injects JS here)
 ├── package.json            # Dependencies & scripts
 ├── vite.config.js          # Vite config (React plugin)
 ├── vercel.json             # SPA rewrite rules for Vercel
 ├── supabase-schema.sql     # Full DB schema (run in Supabase SQL Editor)
+├── eslint.config.js        # ESLint flat config
 ├── .env                    # Local env vars (NOT committed to git)
 ├── .gitignore
 ├── public/
+│   ├── orbit-thread.svg    # App logo / favicon
 │   └── vite.svg
+├── supabase/
+│   ├── config.toml         # Supabase CLI project config
+│   └── migrations/
+│       └── 20260220000000_initial_schema.sql
 └── src/
     ├── main.jsx            # React DOM root mount
     ├── App.jsx             # Re-exports OrbitThreadApp
     ├── App.css             # Unused (styles are in OrbitThreadApp.jsx)
     ├── index.css           # Global body/html reset styles
     ├── supabase.js         # Supabase client initialization
-    ├── OrbitThreadApp.jsx        # ★ MAIN APP — all UI, logic, styles
+    ├── OrbitThreadApp.jsx  # ★ MAIN APP — all UI, logic, styles
     └── assets/
         └── react.svg
 ```
@@ -101,7 +108,7 @@ voxen/
 
 | File                  | Lines | What It Does                                                                                                                                                                                           |
 | --------------------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `OrbitThreadApp.jsx`        | ~2950 | Everything: CSS, constants, mock data, state, Supabase queries, all views (auth, onboard, home, room, profile, people, settings, create modal, invite modal, call modal, discover, DMs, premium modal) |
+| `OrbitThreadApp.jsx`  | ~2950 | Everything: CSS, constants, mock data, state, Supabase queries, all views (auth, onboard, home, room, profile, people, settings, create modal, invite modal, call modal, discover, DMs, premium modal) |
 | `supabase.js`         | ~10   | Creates and exports the Supabase client using env vars                                                                                                                                                 |
 | `supabase-schema.sql` | ~178  | Full database schema — tables, indexes, RLS policies, trigger for auto-profile creation, realtime config                                                                                               |
 | `vercel.json`         | ~5    | SPA catch-all rewrite so routes don't 404 on Vercel                                                                                                                                                    |
@@ -354,8 +361,8 @@ The function extracts `name`, `handle`, and `initials` from the signup metadata 
 
 ```bash
 # 1. Clone
-git clone https://github.com/samisback2024/Voxen.git
-cd Orbit Thread
+git clone https://github.com/samisback2024/voxen.git
+cd voxen/Orbit\ Thread
 
 # 2. Install dependencies
 npm install
@@ -385,19 +392,42 @@ npm run dev
 
 ### Vercel (Current Setup)
 
-1. Push to `main` branch on GitHub
-2. Vercel auto-detects the push and rebuilds
-3. Build command: `vite build` (auto-detected)
-4. Output directory: `dist` (auto-detected)
-5. Environment variables set in Vercel dashboard
-6. `vercel.json` handles SPA routing (all paths → `index.html`)
+- **Live URL:** [orbit-thread.vercel.app](https://orbit-thread.vercel.app)
+- **Vercel project:** `sams-projects-af265555/orbit-thread`
+- Build command: `vite build` (auto-detected)
+- Output directory: `dist` (auto-detected)
+- Environment variables set in Vercel dashboard
+- `vercel.json` handles SPA routing (all paths → `index.html`)
+- Deploy manually: `npx vercel --prod`
 
 ### Supabase
 
-- Project URL: `https://supabase.com/dashboard/project/gpkhehcnsggwjejkwuyv`
+- **Project URL:** `https://supabase.com/dashboard/project/gpkhehcnsggwjejkwuyv`
 - Auth providers: Email (enabled, email confirmation OFF)
-- Schema: Run `supabase-schema.sql` in SQL Editor
 - Realtime enabled for: `messages`, `notifications`, `connections`
+- **Supabase CLI linked** — push schema changes with:
+
+```bash
+# Create a new migration
+npx supabase migration new my_change_name
+# Edit supabase/migrations/<timestamp>_my_change_name.sql
+# Push to remote
+npx supabase db push
+# Check status
+npx supabase migration list
+```
+
+### Git
+
+- **Repository:** [github.com/samisback2024/voxen](https://github.com/samisback2024/voxen)
+- **Branch:** `main`
+- Push triggers Vercel auto-deploy (once GitHub integration is connected)
+
+```bash
+git add -A
+git commit -m "your message"
+git push origin main
+```
 
 ---
 
@@ -426,29 +456,29 @@ npm run dev
 
 ### Priority 3 — Advanced Features
 
-| Feature                | Description                                           | Complexity |
-| ---------------------- | ----------------------------------------------------- | ---------- |
-| **Push notifications** | Browser push API + service worker for offline alerts. | Hard       |
-| **Voice/video calls**  | WebRTC peer-to-peer calling. Needs signaling server.  | Hard       |
-| **Admin dashboard**    | Manage users, rooms, reports. Separate admin role.    | Medium     |
-| **Custom domains**     | Point `orbitthread.app` or similar to Vercel.               | Easy       |
+| Feature                | Description                                                                            | Complexity |
+| ---------------------- | -------------------------------------------------------------------------------------- | ---------- |
+| **Push notifications** | Browser push API + service worker for offline alerts.                                  | Hard       |
+| **Voice/video calls**  | WebRTC peer-to-peer calling. Needs signaling server.                                   | Hard       |
+| **Admin dashboard**    | Manage users, rooms, reports. Separate admin role.                                     | Medium     |
+| **Custom domains**     | Point `orbitthread.app` or similar to Vercel (currently at `orbit-thread.vercel.app`). | Easy       |
 
 ### Priority 4 — Code Quality
 
-| Task                      | Description                                                                      |
-| ------------------------- | -------------------------------------------------------------------------------- |
-| **Split into components** | Break `OrbitThreadApp.jsx` into `AuthPage`, `Sidebar`, `RoomView`, `ProfilePage`, etc. |
-| **State management**      | Move from `useState` spaghetti to React Context or Zustand.                      |
-| **TypeScript migration**  | Add type safety to props, Supabase queries, state.                               |
-| **CSS extraction**        | Move from template literal CSS to CSS Modules or Tailwind.                       |
-| **Testing**               | Add Vitest unit tests + Playwright E2E tests.                                    |
-| **CI/CD**                 | GitHub Actions for lint + test + deploy pipeline.                                |
+| Task                      | Description                                                                                          |
+| ------------------------- | ---------------------------------------------------------------------------------------------------- |
+| **Split into components** | Break `OrbitThreadApp.jsx` (~2943 lines) into `AuthPage`, `Sidebar`, `RoomView`, `ProfilePage`, etc. |
+| **State management**      | Move from `useState` spaghetti to React Context or Zustand.                                          |
+| **TypeScript migration**  | Add type safety to props, Supabase queries, state.                                                   |
+| **CSS extraction**        | Move from template literal CSS to CSS Modules or Tailwind.                                           |
+| **Testing**               | Add Vitest unit tests + Playwright E2E tests.                                                        |
+| **CI/CD**                 | GitHub Actions for lint + test + deploy pipeline.                                                    |
 
 ---
 
 ## Known Limitations
 
-1. **Single-file architecture** — `OrbitThreadApp.jsx` is ~2950 lines. Works for rapid iteration but should be split for maintainability.
+1. **Single-file architecture** — `OrbitThreadApp.jsx` is ~2943 lines. Works for rapid iteration but should be split for maintainability.
 2. **Mock users** — The "People" page shows hardcoded `DEMO_USERS`, not real users from the database.
 3. **Connection system** — Uses local React state (`connStates`), not persisted to Supabase `connections` table yet.
 4. **No email verification** — Turned off for easier dev. Should be enabled for production.
@@ -466,3 +496,7 @@ npm run dev
 
 Built by **Sam** — Phase 1 & 2 completed February 2026.  
 Design philosophy: "Human-crafted warmth — feels like a premium notebook, not a cold SaaS dashboard."
+
+---
+
+_Last updated: February 20, 2026_
