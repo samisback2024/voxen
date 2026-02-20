@@ -99,12 +99,12 @@ voxen/
 
 ### Key Files
 
-| File                  | Lines | What It Does                                                                                                                                                             |
-| --------------------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| File                  | Lines | What It Does                                                                                                                                                                                           |
+| --------------------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `VoxenApp.jsx`        | ~2950 | Everything: CSS, constants, mock data, state, Supabase queries, all views (auth, onboard, home, room, profile, people, settings, create modal, invite modal, call modal, discover, DMs, premium modal) |
-| `supabase.js`         | ~10   | Creates and exports the Supabase client using env vars                                                                                                                   |
-| `supabase-schema.sql` | ~178  | Full database schema — tables, indexes, RLS policies, trigger for auto-profile creation, realtime config                                                                 |
-| `vercel.json`         | ~5    | SPA catch-all rewrite so routes don't 404 on Vercel                                                                                                                      |
+| `supabase.js`         | ~10   | Creates and exports the Supabase client using env vars                                                                                                                                                 |
+| `supabase-schema.sql` | ~178  | Full database schema — tables, indexes, RLS policies, trigger for auto-profile creation, realtime config                                                                                               |
+| `vercel.json`         | ~5    | SPA catch-all rewrite so routes don't 404 on Vercel                                                                                                                                                    |
 
 ---
 
@@ -409,10 +409,10 @@ npm run dev
 | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
 | **Real connections**        | Replace `DEMO_USERS` mock with real user discovery from `profiles` table. Wire connection requests to `connections` table in Supabase. | Medium     |
 | **Persist DMs**             | Create `direct_messages` table in Supabase, wire realtime subscription, replace simulated replies with real delivery.                  | Medium     |
-| **Persist geo rooms**       | Add `radius`, `lat`, `lng` columns to `rooms` table. Query rooms by proximity server-side.                                            | Medium     |
-| **Supabase Storage images** | Move image uploads from base64 inline to `chat-files` Supabase Storage bucket. Store URL in `messages.image_url`.                     | Medium     |
-| **Real Stripe checkout**    | Replace simulated premium flow with Stripe Checkout → webhook → update `profiles.verified`.                                           | Medium     |
-| **Room member list**        | Show who's in a room, pull from `room_members` table.                                                                                 | Easy       |
+| **Persist geo rooms**       | Add `radius`, `lat`, `lng` columns to `rooms` table. Query rooms by proximity server-side.                                             | Medium     |
+| **Supabase Storage images** | Move image uploads from base64 inline to `chat-files` Supabase Storage bucket. Store URL in `messages.image_url`.                      | Medium     |
+| **Real Stripe checkout**    | Replace simulated premium flow with Stripe Checkout → webhook → update `profiles.verified`.                                            | Medium     |
+| **Room member list**        | Show who's in a room, pull from `room_members` table.                                                                                  | Easy       |
 
 ### Priority 2 — User Experience
 
