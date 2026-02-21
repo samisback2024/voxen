@@ -31,7 +31,7 @@
  */
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { supabase, supabaseUrl, supabaseKey } from "./supabase";
+import { supabase } from "./supabase";
 import { useConversations } from "./hooks/useConversations";
 import { useDirectMessages } from "./hooks/useDirectMessages";
 import { useSendDirectMessage } from "./hooks/useSendDirectMessage";
@@ -1927,7 +1927,7 @@ export default function OrbitThreadApp() {
   const enterRoom = (room) => { setActiveRoom(room); setRoomTab("discussion"); setView("room"); };
 
   // ── AUTH: SIGNUP + LOGIN ─────────────────────────────────
-  // Uses direct fetch to Supabase Auth API (bypasses SDK which can hang)
+  // Uses Supabase SDK methods for reliable auth
   const login = async () => {
     setAuthError("");
     if (!email.trim()) return setAuthError("Enter your email address.");
@@ -1941,67 +1941,65 @@ export default function OrbitThreadApp() {
 
     setLoginLoading(true);
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 20000);
-
-      let endpoint, body;
       if (authMode === "signup") {
         const initials = authName.trim().split(/\s+/).map(w => w[0]).join("").toUpperCase().slice(0, 2);
         const handle = "@" + authName.trim().toLowerCase().replace(/\s+/g, "");
-        endpoint = `${supabaseUrl}/auth/v1/signup`;
-        body = JSON.stringify({
+
+        const { data, error } = await supabase.auth.signUp({
           email: email.trim(),
           password: authPassword,
-          data: { name: authName.trim(), handle, initials },
+          options: {
+            data: { name: authName.trim(), handle, initials },
+          },
         });
+
+        if (error) {
+          setAuthError(error.message);
+          return;
+        }
+
+        // If email confirmation is required, user exists but session is null
+        if (data?.user && !data?.session) {
+          // Try signing in immediately — works if autoconfirm is on or
+          // the project doesn't enforce email confirmation
+          const { error: signInErr } = await supabase.auth.signInWithPassword({
+            email: email.trim(),
+            password: authPassword,
+          });
+          if (signInErr) {
+            // Genuinely requires email confirmation
+            setAuthError(
+              "Account created! Check your email for a confirmation link, then sign in. " +
+              "(If using this for development, disable 'Confirm email' in Supabase Dashboard → Authentication → Providers → Email.)"
+            );
+            setAuthMode("login");
+            return;
+          }
+        }
+        // Session established — onAuthStateChange will handle the rest
       } else {
-        endpoint = `${supabaseUrl}/auth/v1/token?grant_type=password`;
-        body = JSON.stringify({
+        // ── SIGN IN ──
+        const { error } = await supabase.auth.signInWithPassword({
           email: email.trim(),
           password: authPassword,
         });
-      }
 
-      const res = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          "apikey": supabaseKey,
-          "Content-Type": "application/json",
-        },
-        body,
-        signal: controller.signal,
-      });
-      clearTimeout(timeoutId);
-
-      const result = await res.json();
-
-      if (!res.ok) {
-        const msg = result?.error_description || result?.msg || result?.message || result?.error || "Authentication failed.";
-        setAuthError(typeof msg === "string" ? msg : JSON.stringify(msg));
-        return;
-      }
-
-      // If sign-up returned but no access_token (email confirmation required)
-      if (!result.access_token) {
-        setAuthError("Check your email for a confirmation link, then sign in.");
-        return;
-      }
-
-      // Set the session in the SDK — this triggers onAuthStateChange → loadProfile
-      const { error: sessionError } = await supabase.auth.setSession({
-        access_token: result.access_token,
-        refresh_token: result.refresh_token,
-      });
-      if (sessionError) {
-        setAuthError(sessionError.message || "Failed to establish session.");
+        if (error) {
+          // Provide friendlier messages for common errors
+          if (error.message?.toLowerCase().includes("email not confirmed")) {
+            setAuthError("Your email hasn't been confirmed yet. Check your inbox for the confirmation link.");
+          } else if (error.message?.toLowerCase().includes("invalid login credentials")) {
+            setAuthError("Invalid email or password. Double-check your credentials or create a new account.");
+          } else {
+            setAuthError(error.message);
+          }
+          return;
+        }
+        // Session established — onAuthStateChange will handle the rest
       }
     } catch (err) {
-      if (err.name === "AbortError") {
-        setAuthError("Connection timed out. Check your internet and try again.");
-      } else {
-        console.error("Auth error:", err);
-        setAuthError(err?.message || "Something went wrong. Please try again.");
-      }
+      console.error("Auth error:", err);
+      setAuthError(err?.message || "Something went wrong. Please try again.");
     } finally {
       setLoginLoading(false);
     }
