@@ -1431,6 +1431,7 @@ export default function OrbitThreadApp() {
   // ── SUPABASE AUTH LISTENER ───────────────────────────────
   useEffect(() => {
     const loadProfile = async (authUser) => {
+      console.log("[OrbitThread] loadProfile called for:", authUser.id, authUser.email);
       try {
         // 20-second timeout on profile fetch to prevent infinite hang
         const profilePromise = supabase
@@ -1439,16 +1440,19 @@ export default function OrbitThreadApp() {
           setTimeout(() => resolve({ data: null, error: { message: "Profile load timed out" } }), 20000)
         );
         const { data: profile, error: profileError } = await Promise.race([profilePromise, profileTimeout]);
+        console.log("[OrbitThread] Profile fetch result:", { profile: !!profile, error: profileError?.message });
 
         if (profileError || !profile) {
           // Profile doesn't exist yet (trigger may not have fired).
           // Create one from the auth user metadata so the app can proceed.
           const meta = authUser.user_metadata || {};
           const fallbackName = meta.name || authUser.email?.split("@")[0] || "User";
-          const fallbackHandle = "@" + fallbackName.toLowerCase().replace(/\s+/g, "");
+          // Add random suffix to handle to avoid unique constraint collisions
+          const rnd = Math.random().toString(36).slice(2, 6);
+          const fallbackHandle = "@" + fallbackName.toLowerCase().replace(/\s+/g, "") + rnd;
           const fallbackInitials = fallbackName.split(/\s+/).map(w => w[0]).join("").toUpperCase().slice(0, 2);
 
-          const { data: newProfile } = await supabase
+          const { data: newProfile, error: upsertErr } = await supabase
             .from("profiles")
             .upsert({
               id: authUser.id,
@@ -1458,6 +1462,7 @@ export default function OrbitThreadApp() {
             }, { onConflict: "id" })
             .select()
             .single();
+          console.log("[OrbitThread] Profile upsert result:", { newProfile: !!newProfile, error: upsertErr?.message });
 
           if (newProfile) {
             setUser({
@@ -1517,12 +1522,13 @@ export default function OrbitThreadApp() {
     // Check existing session
     supabase.auth.getSession()
       .then(({ data: { session } }) => {
+        console.log("[OrbitThread] getSession:", session ? `found session for ${session.user.email}` : "no session");
         if (session?.user) loadProfile(session.user);
         setAuthLoading(false);
         clearTimeout(safetyTimer);
       })
       .catch((err) => {
-        console.error("Auth session check failed:", err);
+        console.error("[OrbitThread] Auth session check failed:", err);
         setAuthLoading(false);
         clearTimeout(safetyTimer);
       });
@@ -1530,6 +1536,7 @@ export default function OrbitThreadApp() {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
+        console.log("[OrbitThread] onAuthStateChange:", _event, session?.user?.email || "no user");
         if (session?.user) {
           await loadProfile(session.user);
         } else {
@@ -1927,7 +1934,6 @@ export default function OrbitThreadApp() {
   const enterRoom = (room) => { setActiveRoom(room); setRoomTab("discussion"); setView("room"); };
 
   // ── AUTH: SIGNUP + LOGIN ─────────────────────────────────
-  // Uses Supabase SDK methods for reliable auth
   const login = async () => {
     setAuthError("");
     if (!email.trim()) return setAuthError("Enter your email address.");
@@ -1945,6 +1951,7 @@ export default function OrbitThreadApp() {
         const initials = authName.trim().split(/\s+/).map(w => w[0]).join("").toUpperCase().slice(0, 2);
         const handle = "@" + authName.trim().toLowerCase().replace(/\s+/g, "");
 
+        console.log("[OrbitThread] Signing up...", email.trim());
         const { data, error } = await supabase.auth.signUp({
           email: email.trim(),
           password: authPassword,
@@ -1952,40 +1959,49 @@ export default function OrbitThreadApp() {
             data: { name: authName.trim(), handle, initials },
           },
         });
+        console.log("[OrbitThread] signUp result:", { data: !!data, user: !!data?.user, session: !!data?.session, identities: data?.user?.identities?.length, error });
 
         if (error) {
           setAuthError(error.message);
           return;
         }
 
-        // If email confirmation is required, user exists but session is null
+        // Supabase returns user with empty identities when the email already exists
+        // (anti-enumeration measure). Prompt user to sign in instead.
+        if (data?.user?.identities?.length === 0) {
+          setAuthError("An account with this email already exists. Please sign in instead.");
+          setAuthMode("login");
+          return;
+        }
+
+        // If signup returned user but no session, try signing in immediately
         if (data?.user && !data?.session) {
-          // Try signing in immediately — works if autoconfirm is on or
-          // the project doesn't enforce email confirmation
+          console.log("[OrbitThread] No session from signUp, trying signInWithPassword...");
           const { error: signInErr } = await supabase.auth.signInWithPassword({
             email: email.trim(),
             password: authPassword,
           });
           if (signInErr) {
-            // Genuinely requires email confirmation
             setAuthError(
               "Account created! Check your email for a confirmation link, then sign in. " +
-              "(If using this for development, disable 'Confirm email' in Supabase Dashboard → Authentication → Providers → Email.)"
+              "(If developing, disable 'Confirm email' in Supabase Dashboard → Auth → Providers → Email.)"
             );
             setAuthMode("login");
             return;
           }
         }
+        console.log("[OrbitThread] Signup complete — session should be active.");
         // Session established — onAuthStateChange will handle the rest
       } else {
         // ── SIGN IN ──
-        const { error } = await supabase.auth.signInWithPassword({
+        console.log("[OrbitThread] Signing in...", email.trim());
+        const { data, error } = await supabase.auth.signInWithPassword({
           email: email.trim(),
           password: authPassword,
         });
+        console.log("[OrbitThread] signIn result:", { session: !!data?.session, user: !!data?.user, error });
 
         if (error) {
-          // Provide friendlier messages for common errors
           if (error.message?.toLowerCase().includes("email not confirmed")) {
             setAuthError("Your email hasn't been confirmed yet. Check your inbox for the confirmation link.");
           } else if (error.message?.toLowerCase().includes("invalid login credentials")) {
@@ -1995,10 +2011,11 @@ export default function OrbitThreadApp() {
           }
           return;
         }
+        console.log("[OrbitThread] Sign-in complete — session active.");
         // Session established — onAuthStateChange will handle the rest
       }
     } catch (err) {
-      console.error("Auth error:", err);
+      console.error("[OrbitThread] Auth exception:", err);
       setAuthError(err?.message || "Something went wrong. Please try again.");
     } finally {
       setLoginLoading(false);
