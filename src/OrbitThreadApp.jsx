@@ -1432,8 +1432,13 @@ export default function OrbitThreadApp() {
   useEffect(() => {
     const loadProfile = async (authUser) => {
       try {
-        const { data: profile, error: profileError } = await supabase
+        // 20-second timeout on profile fetch to prevent infinite hang
+        const profilePromise = supabase
           .from("profiles").select("*").eq("id", authUser.id).single();
+        const profileTimeout = new Promise((resolve) =>
+          setTimeout(() => resolve({ data: null, error: { message: "Profile load timed out" } }), 20000)
+        );
+        const { data: profile, error: profileError } = await Promise.race([profilePromise, profileTimeout]);
 
         if (profileError || !profile) {
           // Profile doesn't exist yet (trigger may not have fired).
@@ -1935,9 +1940,9 @@ export default function OrbitThreadApp() {
 
     setLoginLoading(true);
     try {
-      // 15-second timeout to prevent infinite hang
+      // 30-second timeout to prevent infinite hang
       const timeout = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Connection timed out. Check your internet and try again.")), 15000)
+        setTimeout(() => reject(new Error("Connection timed out. Check your internet and try again.")), 30000)
       );
 
       if (authMode === "signup") {
@@ -1951,7 +1956,7 @@ export default function OrbitThreadApp() {
           }),
           timeout,
         ]);
-        if (error) { setAuthError(error.message); return; }
+        if (error) { setAuthError(typeof error === "string" ? error : error?.message || JSON.stringify(error)); return; }
         // If email confirmation is required, signUp succeeds but session is null
         if (data && !data.session) {
           setAuthError("Check your email for a confirmation link, then sign in.");
@@ -1965,7 +1970,7 @@ export default function OrbitThreadApp() {
           }),
           timeout,
         ]);
-        if (error) { setAuthError(error.message); return; }
+        if (error) { setAuthError(typeof error === "string" ? error : error?.message || JSON.stringify(error)); return; }
         // If sign-in succeeds but no session returned (shouldn't happen, but safety net)
         if (data && !data.session) {
           setAuthError("Sign-in succeeded but no session was created. Try again or check your email for a confirmation link.");
