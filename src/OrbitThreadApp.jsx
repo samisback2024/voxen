@@ -1534,11 +1534,13 @@ export default function OrbitThreadApp() {
       });
 
     // Listen for auth changes
+    // IMPORTANT: Do NOT await loadProfile here — the SDK awaits onAuthStateChange
+    // handlers internally, which would deadlock signUp/signIn if loadProfile stalls.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      (_event, session) => {
         console.log("[OrbitThread] onAuthStateChange:", _event, session?.user?.email || "no user");
         if (session?.user) {
-          await loadProfile(session.user);
+          loadProfile(session.user);
         } else {
           setUser(null);
           setView("auth");
