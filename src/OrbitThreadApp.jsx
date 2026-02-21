@@ -31,7 +31,7 @@
  */
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { supabase } from "./supabase";
+import { supabase, supabaseUrl, supabaseKey } from "./supabase";
 import { useConversations } from "./hooks/useConversations";
 import { useDirectMessages } from "./hooks/useDirectMessages";
 import { useSendDirectMessage } from "./hooks/useSendDirectMessage";
@@ -1927,6 +1927,7 @@ export default function OrbitThreadApp() {
   const enterRoom = (room) => { setActiveRoom(room); setRoomTab("discussion"); setView("room"); };
 
   // ── AUTH: SIGNUP + LOGIN ─────────────────────────────────
+  // Uses direct fetch to Supabase Auth API (bypasses SDK which can hang)
   const login = async () => {
     setAuthError("");
     if (!email.trim()) return setAuthError("Enter your email address.");
@@ -1940,46 +1941,67 @@ export default function OrbitThreadApp() {
 
     setLoginLoading(true);
     try {
-      // 30-second timeout to prevent infinite hang
-      const timeout = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Connection timed out. Check your internet and try again.")), 30000)
-      );
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 20000);
 
+      let endpoint, body;
       if (authMode === "signup") {
         const initials = authName.trim().split(/\s+/).map(w => w[0]).join("").toUpperCase().slice(0, 2);
         const handle = "@" + authName.trim().toLowerCase().replace(/\s+/g, "");
-        const { data, error } = await Promise.race([
-          supabase.auth.signUp({
-            email: email.trim(),
-            password: authPassword,
-            options: { data: { name: authName.trim(), handle, initials } },
-          }),
-          timeout,
-        ]);
-        if (error) { setAuthError(typeof error === "string" ? error : error?.message || JSON.stringify(error)); return; }
-        // If email confirmation is required, signUp succeeds but session is null
-        if (data && !data.session) {
-          setAuthError("Check your email for a confirmation link, then sign in.");
-          return;
-        }
+        endpoint = `${supabaseUrl}/auth/v1/signup`;
+        body = JSON.stringify({
+          email: email.trim(),
+          password: authPassword,
+          data: { name: authName.trim(), handle, initials },
+        });
       } else {
-        const { data, error } = await Promise.race([
-          supabase.auth.signInWithPassword({
-            email: email.trim(),
-            password: authPassword,
-          }),
-          timeout,
-        ]);
-        if (error) { setAuthError(typeof error === "string" ? error : error?.message || JSON.stringify(error)); return; }
-        // If sign-in succeeds but no session returned (shouldn't happen, but safety net)
-        if (data && !data.session) {
-          setAuthError("Sign-in succeeded but no session was created. Try again or check your email for a confirmation link.");
-          return;
-        }
+        endpoint = `${supabaseUrl}/auth/v1/token?grant_type=password`;
+        body = JSON.stringify({
+          email: email.trim(),
+          password: authPassword,
+        });
+      }
+
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "apikey": supabaseKey,
+          "Content-Type": "application/json",
+        },
+        body,
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+
+      const result = await res.json();
+
+      if (!res.ok) {
+        const msg = result?.error_description || result?.msg || result?.message || result?.error || "Authentication failed.";
+        setAuthError(typeof msg === "string" ? msg : JSON.stringify(msg));
+        return;
+      }
+
+      // If sign-up returned but no access_token (email confirmation required)
+      if (!result.access_token) {
+        setAuthError("Check your email for a confirmation link, then sign in.");
+        return;
+      }
+
+      // Set the session in the SDK — this triggers onAuthStateChange → loadProfile
+      const { error: sessionError } = await supabase.auth.setSession({
+        access_token: result.access_token,
+        refresh_token: result.refresh_token,
+      });
+      if (sessionError) {
+        setAuthError(sessionError.message || "Failed to establish session.");
       }
     } catch (err) {
-      console.error("Auth error:", err);
-      setAuthError(err?.message || "Something went wrong. Please try again.");
+      if (err.name === "AbortError") {
+        setAuthError("Connection timed out. Check your internet and try again.");
+      } else {
+        console.error("Auth error:", err);
+        setAuthError(err?.message || "Something went wrong. Please try again.");
+      }
     } finally {
       setLoginLoading(false);
     }
