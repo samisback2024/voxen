@@ -1300,6 +1300,7 @@ export default function OrbitThreadApp() {
   const [user,          setUser]          = useState(null);
   const [authLoading,   setAuthLoading]   = useState(true);
   const [authError,     setAuthError]     = useState("");
+  const [loginLoading,  setLoginLoading]  = useState(false);
   const [authMode,      setAuthMode]      = useState("login"); // "login" | "signup"
   const [authName,      setAuthName]      = useState("");
   const [authPassword,  setAuthPassword]  = useState("");
@@ -1928,22 +1929,34 @@ export default function OrbitThreadApp() {
     if (authMode === "signup") {
       if (!authName.trim()) return setAuthError("Enter your name.");
       if (!authPassword || authPassword.length < 6) return setAuthError("Password must be at least 6 characters.");
-      const initials = authName.trim().split(/\s+/).map(w => w[0]).join("").toUpperCase().slice(0, 2);
-      const handle = "@" + authName.trim().toLowerCase().replace(/\s+/g, "");
-      const { error } = await supabase.auth.signUp({
-        email: email.trim(),
-        password: authPassword,
-        options: { data: { name: authName.trim(), handle, initials } },
-      });
-      if (error) return setAuthError(error.message);
-      // Auth listener will handle profile load + redirect
     } else {
       if (!authPassword) return setAuthError("Enter your password.");
-      const { error } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
-        password: authPassword,
-      });
-      if (error) return setAuthError(error.message);
+    }
+
+    setLoginLoading(true);
+    try {
+      if (authMode === "signup") {
+        const initials = authName.trim().split(/\s+/).map(w => w[0]).join("").toUpperCase().slice(0, 2);
+        const handle = "@" + authName.trim().toLowerCase().replace(/\s+/g, "");
+        const { error } = await supabase.auth.signUp({
+          email: email.trim(),
+          password: authPassword,
+          options: { data: { name: authName.trim(), handle, initials } },
+        });
+        if (error) { setAuthError(error.message); return; }
+        // Auth listener will handle profile load + redirect
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({
+          email: email.trim(),
+          password: authPassword,
+        });
+        if (error) { setAuthError(error.message); return; }
+      }
+    } catch (err) {
+      console.error("Auth error:", err);
+      setAuthError(err?.message || "Something went wrong. Please try again.");
+    } finally {
+      setLoginLoading(false);
     }
   };
 
@@ -2012,8 +2025,8 @@ export default function OrbitThreadApp() {
                 <input className="fi" type="password" placeholder={authMode === "signup" ? "Min 6 characters" : "Your password"} value={authPassword} onChange={e => setAuthPassword(e.target.value)} onKeyDown={e => e.key==="Enter" && login()} />
               </div>
               {authError && <div style={{color:"#ff6b6b",fontSize:12,marginBottom:8,textAlign:"center"}}>{authError}</div>}
-              <button className="btn-primary full" disabled={!email || !authPassword} onClick={login}>
-                {authMode === "signup" ? "Create Account" : "Sign In"}
+              <button className="btn-primary full" disabled={!email || !authPassword || loginLoading} onClick={login}>
+                {loginLoading ? "Signing in..." : authMode === "signup" ? "Create Account" : "Sign In"}
               </button>
               <div className="auth-foot">
                 {authMode === "login"
